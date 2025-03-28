@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<springProfile name="!dev">
+		<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+			<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+				<layout class="ch.qos.logback.classic.PatternLayout">
+					<pattern>
+						{"component":"es-api-commerce","date":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}","thread":"%thread","level":"%level","host":"${HOSTNAME:-unknown}"%mdc{,"%key":"%value"},"message":"%msg"}\n
+					</pattern>
+				</layout>
+			</encoder>
+		</appender>
+		<root level="INFO">
+			<appender-ref ref="CONSOLE" />
+		</root>
+	</springProfile>
+	<springProfile name="dev">
+		<appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+			<http>
+				<url>
+					http://localhost:3100/loki/api/v1/push
+				</url>
+			</http>
+			<format>
+				<label>
+					<pattern>
+						app=es-api-commerce,level=%level,thread=%thread,host=${HOSTNAME:-unknown}
+					</pattern>
+				</label>
+				<message>
+					<layout class="com.github.loki4j.logback.JsonLayout">
+						<jsonFormatter class="com.github.loki4j.logback.stacktrace.ShortenedThrowableConverter" />
+						<timestamp>
+							date
+						</timestamp>
+						<includeMdc>
+							true
+						</includeMdc>
+						<includeLevel>
+							true
+						</includeLevel>
+						<includeThread>
+							true
+						</includeThread>
+						<includeLoggerName>
+							false
+						</includeLoggerName>
+						<includeFormattedMessage>
+							false
+						</includeFormattedMessage>
+						<staticLabel>
+							component=es-api-commerce,host=${HOSTNAME:-unknown}
+						</staticLabel>
+						<additionalFields>
+							<field>
+								<name>
+									message
+								</name>
+								<pattern>
+									%msg
+								</pattern>
+							</field>
+						</additionalFields>
+					</layout>
+				</message>
+				<sortByTime>
+					true
+				</sortByTime>
+			</format>
+			<batch>
+				<size>
+					1000
+				</size>
+				<timeout>
+					5s
+				</timeout>
+			</batch>
+		</appender>
+		<root level="INFO">
+			<appender-ref ref="LOKI" />
+		</root>
+	</springProfile>
+</configuration>
